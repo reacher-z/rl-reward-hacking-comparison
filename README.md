@@ -1,49 +1,61 @@
-# Qualitative Comparison: Reward Hacking in RL Fine-Tuning
+# Reward Hacking in RL Fine-Tuning: EditReward vs RewardClaw
 
-FlowGRPO RL fine-tuning of **FLUX.2-klein-base-4B** on ImgEdit-Bench, comparing two reward models: **EditReward** vs **RewardClaw** (ours).
+We RL-fine-tune the image editor **FLUX.2-klein-base-4B** with FlowGRPO, using two different reward models as the training signal: a trained reward model **EditReward**, and our **RewardClaw**. This page shows that **training with EditReward induces reward hacking** — the editor learns to add hallucinated or exaggerated content that inflates the reward but is not faithful to the instruction — whereas **RewardClaw does not**.
 
-On the held-out ImgEdit-Bench, **RewardClaw** improves **6/9** edit categories (Overall 3.32->3.52); **EditReward** improves 5/9 and degrades 4/9 (Overall 3.32->3.45). The **Base (before RL)** column shows the model is well-behaved before RL: the failures below are introduced by RL with the EditReward signal (reward hacking), while RewardClaw stays faithful.
+## How to read each example
+Every row has four panels, left to right:
 
-Each row: **Source | Base (before RL) | +RL (EditReward) | +RL (RewardClaw, ours)**.
+| Panel | Meaning |
+| --- | --- |
+| **Source** | the input image to be edited |
+| **Base (before RL)** | the editor **before any RL** — the control. It is well-behaved here. |
+| **+EditReward (hacked)** | the editor after RL with the **EditReward** signal |
+| **+RewardClaw (ours)** | the editor after RL with **RewardClaw** |
 
-**1. [background]** Change the traditional embroidered dress in the picture from a wedding setting to a casual garden setting.
+**The Base column is the key control:** because Base is faithful, any new hallucination/artifact in the *+EditReward* panel is **introduced by the RL training (reward hacking)**, not by the underlying editor. RewardClaw, trained on the same data with the same RL recipe, stays faithful.
 
-*EditReward hallucinates an entire extra person; Base & RewardClaw keep the subject.*
+## Aggregate result (held-out ImgEdit-Bench, GPT-4o judge, 737 samples)
+RewardClaw improves **6/9** edit categories (Overall **3.32 -> 3.52**); EditReward improves only **5/9** and **degrades 4/9** (Overall **3.32 -> 3.45**). Full per-category table is in the paper (Table 2).
 
-![case288](figures/288.jpg)
+## Qualitative reward-hacking cases
+### 1. [extract] Extract the chocolate bar sleigh with candy cane runners and teddy bear cookie rider from the image.
 
-**2. [style]** Transfer the image into a hand-sculpted claymation style.
-
-*EditReward inserts hallucinated figures and skips the clay style; RewardClaw cleanly claymates.*
-
-![case683](figures/683.jpg)
-
-**3. [style]** Transfer the image into a Lego-brick stop-motion diorama style.
-
-*EditReward scatters random Lego clutter without converting the scene; RewardClaw rebuilds it in Lego.*
-
-![case682](figures/682.jpg)
-
-**4. [extract]** Extract the chocolate bar sleigh with candy cane runners and teddy bear cookie rider from the image.
-
-*EditReward adds hallucinated decorations; RewardClaw extracts cleanly.*
+Base cleanly isolates the chocolate-bar sleigh. **EditReward hallucinates extra teddy-bear / candy clutter** next to it (content absent from Base) — gaming the reward. RewardClaw matches Base.
 
 ![case432](figures/432.jpg)
 
-**5. [extract]** Extract the architectural structure visible in the background of the image, including all visible buildings and structural elements, while maintaining the surrounding environmental context such as the sky and nearby terrain.
+### 2. [extract] Extract the architectural structure visible in the background of the image, including all visible buildings and structural elements, while maintaining the surrounding environmental context such as the sky and nearby terrain.
 
-*EditReward hallucinates a floating wireframe artifact; RewardClaw stays clean.*
+Base is clean. **EditReward hallucinates a floating wireframe structure in the sky** that exists in neither the source nor Base. RewardClaw stays clean.
 
 ![case406](figures/406.jpg)
 
-**6. [add]** Add a set of colorful beach towels hanging over the railing on the right side of the pier.
+### 3. [extract] Extract the animals present in the image.
 
-*EditReward floats the towels in the water; RewardClaw places them on the railing.*
+Base shows one clean bird. **EditReward hallucinates a second, distorted bird** behind the target. RewardClaw keeps the single bird.
 
-![case35](figures/35.jpg)
+![case364](figures/364.jpg)
 
-**7. [remove]** Remove the person in the image who is standing next to the fence by the railway track.
+### 4. [replace] Replace the singer in the image with a person holding a colorful balloon.
 
-*EditReward leaves the person in (edit ignored); RewardClaw removes it cleanly.*
+Base is faithful to the singer. **EditReward hallucinates a large floating balloon/orb** in the upper-left. RewardClaw stays clean.
 
-![case473](figures/473.jpg)
+![case543](figures/543.jpg)
+
+### 5. [add] Add a person walking in the foreground near the broken wooden fence, dressed in winter clothing.
+
+Base keeps the painting's style. **EditReward inserts an oversized, out-of-style dark figure**; RewardClaw adds a small, proportionate person that fits the scene.
+
+![case100](figures/100.jpg)
+
+### 6. [adjust] Change the color of the house's front door to navy blue.
+
+The instruction recolors only the front door. **EditReward floods a large area of the house siding blue** (massive over-application); RewardClaw recolors only the targeted region.
+
+![case1118](figures/1118.jpg)
+
+### 7. [replace] Replace the man in the image with a snowman sitting in the same pose, surrounded by the snowy garden environment.
+
+Base produces a clean snowman. **EditReward leaves red facial artifacts and a half-replaced body**; RewardClaw produces a clean, coherent snowman.
+
+![case553](figures/553.jpg)
