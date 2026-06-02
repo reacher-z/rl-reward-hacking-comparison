@@ -1,53 +1,49 @@
 # Qualitative Comparison: Reward Hacking in RL Fine-Tuning
 
-FlowGRPO RL fine-tuning of **FLUX.2-klein-base-4B** on ImgEdit-Bench, comparing two reward models used to RL-train the editor: **EditReward** (a trained reward model) vs **RewardClaw** (ours).
+FlowGRPO RL fine-tuning of **FLUX.2-klein-base-4B** on ImgEdit-Bench, comparing two reward models: **EditReward** vs **RewardClaw** (ours).
 
-On the held-out ImgEdit-Bench, **RewardClaw** improves **6/9** edit categories (Overall 3.32 -> 3.52), while **EditReward** improves only 5/9 and degrades 4/9 (Overall 3.32 -> 3.45). Below, the EditReward-trained editor exhibits **reward hacking** (hallucinated content / global over-restyle to game the reward), while the RewardClaw-trained editor stays faithful.
+On the held-out ImgEdit-Bench, **RewardClaw** improves **6/9** edit categories (Overall 3.32->3.52); **EditReward** improves 5/9 and degrades 4/9 (Overall 3.32->3.45). The **Base (before RL)** column shows the model is well-behaved before RL: the failures below are introduced by RL with the EditReward signal (reward hacking), while RewardClaw stays faithful.
 
-Each panel: **Source  |  +RL (EditReward)  |  +RL (RewardClaw, ours)**.
-
-## Reward hacking: hallucinated / spurious content from EditReward
+Each row: **Source | Base (before RL) | +RL (EditReward) | +RL (RewardClaw, ours)**.
 
 **1. [background]** Change the traditional embroidered dress in the picture from a wedding setting to a casual garden setting.
 
-*EditReward hallucinates an entire extra person and restyles the scene; RewardClaw keeps the subject and changes only the background.*
+*EditReward hallucinates an entire extra person; Base & RewardClaw keep the subject.*
 
 ![case288](figures/288.jpg)
 
 **2. [style]** Transfer the image into a hand-sculpted claymation style.
 
-*EditReward inserts hallucinated human figures and barely applies the clay style; RewardClaw cleanly claymates the whole scene.*
+*EditReward inserts hallucinated figures and skips the clay style; RewardClaw cleanly claymates.*
 
 ![case683](figures/683.jpg)
 
 **3. [style]** Transfer the image into a Lego-brick stop-motion diorama style.
 
-*EditReward scatters random Lego figures and clutter without converting the scene; RewardClaw rebuilds the castle in Lego bricks.*
+*EditReward scatters random Lego clutter without converting the scene; RewardClaw rebuilds it in Lego.*
 
 ![case682](figures/682.jpg)
 
 **4. [extract]** Extract the chocolate bar sleigh with candy cane runners and teddy bear cookie rider from the image.
 
-*EditReward adds hallucinated decorations/clutter instead of a clean extraction; RewardClaw isolates the target cleanly.*
+*EditReward adds hallucinated decorations; RewardClaw extracts cleanly.*
 
 ![case432](figures/432.jpg)
 
 **5. [extract]** Extract the architectural structure visible in the background of the image, including all visible buildings and structural elements, while maintaining the surrounding environmental context such as the sky and nearby terrain.
 
-*EditReward hallucinates a floating wireframe artifact in the sky; RewardClaw keeps the scene clean.*
+*EditReward hallucinates a floating wireframe artifact; RewardClaw stays clean.*
 
 ![case406](figures/406.jpg)
 
 **6. [add]** Add a set of colorful beach towels hanging over the railing on the right side of the pier.
 
-*EditReward floats the towels in the water off the pier; RewardClaw places them correctly on the right railing.*
+*EditReward floats the towels in the water; RewardClaw places them on the railing.*
 
 ![case35](figures/35.jpg)
 
-## Instruction following
+**7. [remove]** Remove the person in the image who is standing next to the fence by the railway track.
 
-**[remove]** Remove the person in the image who is standing next to the fence by the railway track.
-
-*EditReward leaves the person unchanged (edit ignored); RewardClaw removes the person cleanly while preserving the scene.*
+*EditReward leaves the person in (edit ignored); RewardClaw removes it cleanly.*
 
 ![case473](figures/473.jpg)
