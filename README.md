@@ -1,14 +1,12 @@
-# Reward Hacking in RL Fine-Tuning: EditReward vs RewardClaw
+# Reward Hacking Analysis
 
-We RL-fine-tune the image editor **FLUX.2-klein-base-4B** with FlowGRPO, using two reward models as the training signal: **EditReward** (a trained reward model) vs our **RewardClaw**. Training with EditReward induces **reward hacking** — the editor learns to add hallucinated/exaggerated content or revert to the source to inflate the reward, instead of faithfully following the instruction. RewardClaw, trained on the same data with the same recipe, does not.
+We RL fine-tune the image editing model **FLUX.2-klein-base-4B** with FlowGRPO, using two reward models as the training signal: **EditReward** (a trained reward model) vs our **RewardClaw**. Training with EditReward induces **reward hacking**: the editing model learns to add hallucinated/exaggerated content or revert to the source to inflate the reward, instead of faithfully following the instruction. RewardClaw does not.
 
 Each row: **Source | Base (before RL) | +EditReward (hacked) | +RewardClaw (ours)**.
 
-**Base (before RL) is the control:** it is faithful, so any new artifact or reverted content in the *+EditReward* panel is **introduced by the RL training (reward hacking)**.
+On the held-out ImgEdit-Bench (GPT-4o judge, 737 samples), RewardClaw improves **6/9** edit categories (Overall **3.32 -> 3.52**); EditReward improves 5/9 and degrades 4/9 (Overall **3.32 -> 3.45**).
 
-Aggregate (held-out ImgEdit-Bench, GPT-4o judge, 737 samples): RewardClaw improves **6/9** edit categories (Overall **3.32 -> 3.52**); EditReward improves 5/9 and degrades 4/9 (Overall **3.32 -> 3.45**).
-
-## Reward-hacking cases
+## Cases
 
 ### 1. [add] Add a dog walking beside the person on the snow-covered path.
 
